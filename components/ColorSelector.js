@@ -27,7 +27,7 @@ export default ({ selectedColor, colorOptions, onSelect }) => {
 		<View style={styles.container} >
 			{colorOptions.map((colorName) => {
 				return (
-					<ColorButton
+					<ColorButton key={colorName}
 						// Nhấn vào và truyền lên cho EditList màu đã chọn
 						clickChooseColor={() => onSelect(Colors[colorName])}
 						// Set color. 
