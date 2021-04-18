@@ -21,12 +21,13 @@ const validatorField = (email, password) => {
     password: validator.isStrongPassword(password, {
       // Tạm thời chỉ để min 3 cho dễ test
       minLength: 3,
-      // minLowercase: 1,
-      // minUppercase: 1,
-      // minNumbers: 1,
-      // minSymbols: 1,
+      minLowercase: 0, minUppercase: 0, minNumbers: 0, minSymbols: 0
     }),
   };
+  // minLowercase: 1,
+  // minUppercase: 1,
+  // minNumbers: 1,
+  // minSymbols: 1,
   return isValid;
 };
 
@@ -42,6 +43,7 @@ const createAccount = (email, password) => {
     .createUserWithEmailAndPassword(email, password)
     .then(({ user }) => {
       console.log('Create User');
+      firebase.firestore().collection("users").doc(user.uid).set({})
     })
 };
 

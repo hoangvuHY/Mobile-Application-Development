@@ -6,8 +6,8 @@ import {
 import Colors from '../constants/Colors';
 import Checkbox from './Checkbox'
 
-const EditableText = ({ text, isChecked, onChangeText, isNewItem }) => {
-	const [isEditMode, setEditMode] = useState(isNewItem);
+const EditableText = ({ text, isChecked, onChangeText, ...props }) => {
+	const [isEditMode, setEditMode] = useState(props.new);
 
 	return (
 		<TouchableOpacity style={{ flex: 1 }} onPress={() => !isChecked && setEditMode(true)} >
@@ -26,7 +26,10 @@ const EditableText = ({ text, isChecked, onChangeText, isNewItem }) => {
 					// Có thể thêm vào thuôc tính của css
 					style={[styles.input, { outline: "none" }]}
 					// Khi mà ra khỏi input 
-					onBlur={() => setEditMode(false)}	
+					onBlur={() => {
+						props.onBlur && props.onBlur()
+						setEditMode(false)
+					}}
 				/> :
 					<Text
 						style={
@@ -45,7 +48,7 @@ const EditableText = ({ text, isChecked, onChangeText, isNewItem }) => {
 }
 
 export default ({
-	text, isChecked, onChecked, onChangeText, onDelete, isNewItem
+	text, isChecked, onChecked, onChangeText, onDelete, ...props
 }) => {
 	return (
 		<View style={styles.container} >
@@ -56,7 +59,7 @@ export default ({
 					text={text}
 					isChecked={isChecked}
 					onChangeText={onChangeText}
-					isNewItem={isNewItem}
+					{...props}
 				/>
 
 				<TouchableOpacity onPress={onDelete} >

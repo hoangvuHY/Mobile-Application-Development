@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from "react";
+import React, { useLayoutEffect, useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,8 +7,11 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import firebase from 'firebase';
 
 import Colors from "../constants/Colors";
+import { onSnapshot, addDoc, removeDoc, updateDoc } from '../services/collections';
+import { add } from "react-native-reanimated";
 
 const ListButton = ({
   title,
@@ -65,27 +68,49 @@ const renderAddListIcon = (navigation, addItemTodoList) => {
 export default ({ navigation }) => {
   // Demo
   const [lists, setLists] = useState([
-    { title: "School", color: Colors.red },
-    { title: "Word", color: Colors.green },
-    { title: "Fun", color: Colors.gray },
+    /*     { title: "School", color: Colors.red },
+        { title: "Word", color: Colors.green },
+        { title: "Fun", color: Colors.gray }, */
   ]);
 
+  const listRef = firebase
+    .firestore()
+    .collection('users')
+    .doc(firebase.auth().currentUser.uid)
+    .collection("lists");
+
+  useEffect(() => {
+    onSnapshot(listRef, (newLists) => {
+      setLists(newLists);
+    }, {
+      sort: (a, b) => {
+        if (a.index < b.index) {
+          return -1;
+        }
+
+        if (a.index > b.index) {
+          return 1;
+        }
+
+        return 0;
+      },
+    });
+  }, []);
+
   // Thêm vào list và cập nhật state
-  const addItemTodoList = (item) => {
-    lists.push(item);
-    setLists([...lists]);
+  const addItemTodoList = ({ title, color }) => {
+    const index = lists.length > 1 ? lists[lists.length - 1].index + 1 : 0;
+    addDoc(listRef, { title, color, index })
   };
 
   // Xoá vào list và cập nhật state
-  const removeItemToList = (index) => {
-    lists.splice(index, 1);
-    setLists([...lists]);
+  const removeItemToList = (id) => {
+    removeDoc(listRef, id);
   };
 
   // Update
-  const updateItemFromLists = (index, item) => {
-    lists[index] = item;
-    setLists([...lists]);
+  const updateItemFromLists = (id, item) => {
+    updateDoc(listRef, id, item);
   };
 
   // Sử dụng để để chạy trước UI. Cái này chạy xong mới hiện UI
@@ -101,16 +126,17 @@ export default ({ navigation }) => {
       <FlatList
         data={lists}
         // Hàm này giống với hàm map trong react. Truyền vào object và index
-        renderItem={({ item: { title, color }, index }) => {
+        renderItem={({ item: { title, color, id, index } }) => {
           return (
             <ListButton
               title={title}
               color={color}
               navigation={navigation}
-              onRemove={() => removeItemToList(index)}
+              onRemove={() => removeItemToList(id)}
               onNagationDetail={() => {
                 // Khi chạm vào cả cái khung thì sẽ ra màn hình của phần này. Đồng thời truyền 2 giá trị title và color qua route
-                navigation.navigate("TodoList", { title, color });
+                navigation.navigate("TodoList",
+                  { title, color, listId: id });
               }}
               onNavigationEdit={() => {
                 // Khi chạm vào Edit thì sẽ ra màn hình của phần này. Đồng thời truyền 2 giá trị title,color và hàm saveChanges qua route
@@ -120,7 +146,7 @@ export default ({ navigation }) => {
                   {
                     title,
                     color,
-                    saveChanges: (item) => updateItemFromLists(index, item),
+                    saveChanges: (newItem) => updateItemFromLists(id, { index, ...newItem }),
                   }
                 );
               }}
