@@ -19,7 +19,7 @@ const AuthScreen = () => {
   return (
     <AuthStack.Navigator>
       {/* Cho ra màn hình login */}
-      <AuthStack.Screen name="Login" component={Login} />
+      <AuthStack.Screen options={{ headerShown: false }} name="Login" component={Login} />
     </AuthStack.Navigator>
   );
 };

@@ -9,6 +9,12 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import Colors from "../constants/Colors";
+import {
+  useFonts,
+  Roboto_400Regular,
+  Bangers_400Regular,
+  OpenSans_400Regular
+} from "@expo-google-fonts/dev";
 
 // Cho label ra 1 component để dùng chung
 export default ({
@@ -20,6 +26,11 @@ export default ({
   onChangeText,
   ...inputProps
 }) => {
+  let [fontsLoaded] = useFonts({
+    Roboto_400Regular,
+    Bangers_400Regular,
+    OpenSans_400Regular
+  });
   return (
     <View style={styles.container}>
       <View style={styles.labelContainer}>
@@ -28,9 +39,10 @@ export default ({
         <Text style={styles.error}>{errorMessage && `*${errorMessage}`}</Text>
 
         <TextInput
+        
           underlineColorAndroid="transparent"
           selectionColor="transparent"
-          style={[styles.input, { color: "none" }, inputStyle]}
+          style={[styles.input, {fontFamily: "OpenSans_400Regular"}]}
           value={text}
           onChangeText={onChangeText}
           {...inputProps}
@@ -57,9 +69,8 @@ const styles = StyleSheet.create({
   input: {
     borderBottomColor: Colors.lightGray,
     borderBottomWidth: 1,
-    paddingLeft: 4,
-    height: 32,
-    fontSize: 24,
+    height: 43,
+    fontSize: 15,
     color: Colors.black,
   },
 });

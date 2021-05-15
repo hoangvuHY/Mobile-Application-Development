@@ -5,6 +5,7 @@ import {
   View,
   TouchableOpacity,
   FlatList,
+  Image
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import validator from "validator";
@@ -13,6 +14,14 @@ import firebase from 'firebase';
 import Colors from "../constants/Colors";
 import Button from "../components/Button";
 import LabelInput from "../components/LabelInput";
+
+import styles from './css/Login';
+import {
+  useFonts,
+  Roboto_400Regular,
+  Bangers_400Regular,
+  OpenSans_400Regular
+} from "@expo-google-fonts/dev";
 
 // Dùng thư viện Validator để validate khi đăng ký và đăng nhập
 const validatorField = (email, password) => {
@@ -54,6 +63,11 @@ export default () => {
     text: "",
     errorMessage: "",
   });
+  let [fontsLoaded] = useFonts({
+    Roboto_400Regular,
+    Bangers_400Regular,
+    OpenSans_400Regular
+  });
   const [passwordField, setPasswordField] = useState({
     text: "",
     errorMessage: "",
@@ -64,28 +78,35 @@ export default () => {
   });
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>
-        <Ionicons name="ios-logo-firebase" size={70} color={Colors.red} />{" "}
-        TodoApp
-      </Text>
+    <View style={[styles.container, {background: 'white'}]}>
+      <View style={styles.imageHeader}>
+        <Image source={require('../assets/backgroundLogin.jpg')} style={styles.imgHeader}></Image>
+      </View>
+      <View style={styles.contentLogin}>
+        <View style={styles.headerLogin}>
+          <Text style={[styles.textHeader1, { fontFamily: "OpenSans_400Regular" }]}>
+            {/*    <Ionicons name="ios-logo-firebase" size={70} color={Colors.red} />{" "} */}
+           Welcome
+        </Text>
+          <Text style={[styles.textHeader2, { fontFamily: "OpenSans_400Regular" }]}>
+            Đăng nhập để tiếp tục
+        </Text>
+        </View>
 
-      <View style={{ flex: 1 }}>
-        {/* /* Header */}
-        {/* /* Email input */}
         <LabelInput
-          label="Email"
+
           text={emailField.text}
+          placeholder="Email"
           onChangeText={(text) => {
             setEmailField({ text });
           }}
           errorMessage={emailField.errorMessage}
-          labelStyle={styles.label}
-          autoCompleteType="email"
+
+          autoCompleteType="Email"
         />
-        {/* /* Password input */}
+
         <LabelInput
-          label="Password"
+          placeholder="Mật khẩu"
           text={passwordField.text}
           onChangeText={(text) => {
             setPasswordField({ text });
@@ -93,96 +114,72 @@ export default () => {
           // Trường này để password hiện dấu ****
           secureTextEntry={true}
           errorMessage={passwordField.errorMessage}
-          labelStyle={styles.label}
+
           autoCompleteType="password"
         />
-        {/* /* Password Reentry input. Khi bấm vào tạo thì mới hiện component này */}
+
         {isCreateMode ? (
           <LabelInput
-            label="Re-enter Password"
             text={passworReentrydField.text}
+            placeholder="Nhập lại mật khẩu"
             onChangeText={(text) => {
               setPassworReentrydField({ text });
             }}
             secureTextEntry={true}
             errorMessage={passworReentrydField.errorMessage}
-            labelStyle={styles.label}
+
             autoCompleteType="email"
           />
         ) : (
           ""
         )}
-        {/* /* Login Toggle */}
+
         <TouchableOpacity
           onPress={() => {
             setIsCreateMode(!isCreateMode);
           }}
         >
-          <Text
-            style={{
-              alignSelf: "center",
-              color: Colors.blue,
-              fontSize: 16,
-              margin: 4,
-            }}
-          >
-            {isCreateMode ? "Already have an account?" : "Create new account"}
+          <Text style={[styles.isAccount, {fontFamily: "OpenSans_400Regular"}]}>
+            {isCreateMode ? "Đã có tài khoản? Đăng nhập" : "Chưa có tài khoản? Đăng ký"}
           </Text>
         </TouchableOpacity>
+
+
+        <Button
+          onPress={() => {
+            const isValid = validatorField(emailField.text, passwordField.text);
+            let isAllValid = true;
+            if (!isValid.email) {
+              emailField.errorMessage = "Vui lòng nhập email hợp lệ";
+              setEmailField({ ...emailField });
+              isAllValid = false;
+            }
+
+            if (!isValid.password) {
+              passwordField.errorMessage =
+                "Bạn phải nhập bao gồm ít nhất 8 ký tự, bao gồm: chữ số, chữ viết thường, chữ viết hoa và ký hiệu";
+              setEmailField({ ...passwordField });
+              isAllValid = false;
+            }
+
+            if (isCreateMode && passworReentrydField.text != passwordField.text) {
+              passworReentrydField.errorMessage = "Mật khẩu không đồng nhất";
+              setPassworReentrydField({ ...passworReentrydField });
+              isAllValid = false;
+            }
+
+            if (isAllValid) {
+              isCreateMode
+                ? createAccount(emailField.text, passwordField.text)
+                : login(emailField.text, passwordField.text);
+            }
+
+          }}
+          text={isCreateMode ? "Đăng ký" : "Đăng nhập"}
+        />
       </View>
 
-      <Button
-        onPress={() => {
-          const isValid = validatorField(emailField.text, passwordField.text);
-          let isAllValid = true;
-          if (!isValid.email) {
-            emailField.errorMessage = "Please enter a valid email";
-            setEmailField({ ...emailField });
-            isAllValid = false;
-          }
-
-          if (!isValid.password) {
-            passwordField.errorMessage =
-              "Please must be at least 8 long w/numbers, uppercase, lowercase and symbol";
-            setEmailField({ ...passwordField });
-            isAllValid = false;
-          }
-
-          if (isCreateMode && passworReentrydField.text != passwordField.text) {
-            passworReentrydField.errorMessage = "Password do not match!";
-            setPassworReentrydField({ ...passworReentrydField });
-            isAllValid = false;
-          }
-
-          if (isAllValid) {
-            isCreateMode
-              ? createAccount(emailField.text, passwordField.text)
-              : login(emailField.text, passwordField.text);
-          }
-
-        }}
-        buttonStyle={{ backgroundColor: Colors.red }}
-        text={isCreateMode ? "Create Account" : "Login"}
-      />
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    justifyContent: "space-between",
-    alignItems: "stretch",
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: Colors.black,
-  },
-  header: {
-    fontSize: 60,
-    color: Colors.red,
-    alignSelf: "center",
-  },
-});
